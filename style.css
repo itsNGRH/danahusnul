@@ -400,3 +400,21 @@ input:focus, select:focus {
     text-align: right;
     background: none;
 }
+
+/* Tabel Transaksi */
+#tabel-transaksi td {
+    vertical-align: top;
+}
+
+/* Nominal: TIDAK BOLEH WRAP */
+#tabel-transaksi td.kolom-nominal {
+    white-space: nowrap;
+    text-align: right;
+}
+
+/* Keterangan: BOLEH WRAP */
+#tabel-transaksi td.kolom-keterangan {
+    white-space: normal;
+    word-break: break-word;
+    max-width: 320px; /* sesuaikan */
+}

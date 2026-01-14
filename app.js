@@ -6,6 +6,19 @@ let chartBeranda = null;
 // =======================
 // Load CSV
 // =======================
+function parseTanggal(str) {
+    if (!str) return null;
+
+    const [day, mon, year] = str.split(' ');
+    const bulanMap = {
+        Jan: 0, Feb: 1, Mar: 2, Apr: 3,
+        Mei: 4, Jun: 5, Jul: 6, Agu: 7,
+        Sep: 8, Okt: 9, Nov: 10, Des: 11
+    };
+
+    return new Date(year, bulanMap[mon], Number(day));
+}
+
 Papa.parse(CSV_URL, {
     download: true,
     header: true,
@@ -13,7 +26,7 @@ Papa.parse(CSV_URL, {
         dataTransaksi = results.data
             .filter(r => r.Tanggal)
             .map(r => ({
-                tanggal: new Date(r.Tanggal),
+                tanggal: parseTanggal(r.Tanggal),
                 jenis: (r.Jenis || '').toLowerCase(),
                 keterangan: r.Keterangan || '-',
                 nominal: Number(r.Nominal) || 0
@@ -41,7 +54,7 @@ function renderBeranda(filterType = null, start = null, end = null) {
         if (filterType === 'bulan' && start && end) {
             const startDate = new Date(start + '-01');
             const [yEnd, mEnd] = end.split('-');
-            const endDate = new Date(Number(yEnd), Number(mEnd) - 1, 1);
+            const endDate = new Date(Number(yEnd), Number(mEnd), 0);
             if (d.tanggal < startDate || d.tanggal > endDate) return;
         }
         if (filterType === 'tahun' && start && end) {
@@ -77,7 +90,12 @@ function renderBeranda(filterType = null, start = null, end = null) {
     if (filterType === 'bulan') {
         Object.keys(monthlyMap).sort().forEach(k => {
             const [y,m] = k.split('-');
-            labels.push(`${m}/${y}`);
+            labels.push(
+                new Date(y, m - 1).toLocaleDateString('id-ID', {
+                    month: 'short',
+                    year: 'numeric'
+                })
+            );
             dataMasuk.push(monthlyMap[k].masuk);
             dataKeluar.push(monthlyMap[k].keluar);
         });
@@ -186,24 +204,34 @@ document.getElementById('filter-tipe').addEventListener('change', e => {
 // =======================
 // Render Transaksi
 // =======================
+const formatTanggal = date =>
+    date.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    });
+
 function renderTransaksi(filterMonth=null){
     const tbody = document.getElementById('tabel-transaksi');
     tbody.innerHTML = '';
-    let filtered = dataTransaksi;
+    let filtered = [...dataTransaksi];
 
     if(filterMonth){
         const [y,m] = filterMonth.split('-');
         filtered = dataTransaksi.filter(d => d.tanggal.getFullYear()==y && (d.tanggal.getMonth()+1)==m);
     }
 
-    filtered.sort((a,b)=>b.tanggal - a.tanggal)
+    filtered
+        .sort((a,b)=>a.tanggal - b.tanggal)
         .forEach(d=>{
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${d.tanggal.toLocaleDateString('id-ID')}</td>
+                <td>${formatTanggal(d.tanggal)}</td>
                 <td>${formatJenis(d.jenis)}</td>
-                <td>${d.keterangan}</td>
-                <td class="${d.jenis}">Rp ${d.nominal.toLocaleString('id-ID')}</td>
+                <td class="kolom-keterangan">${d.keterangan}</td>
+                <td class="kolom-nominal ${d.jenis}">
+                    Rp ${d.nominal.toLocaleString('id-ID')}
+                </td>
             `;
             tbody.appendChild(tr);
         });
@@ -455,7 +483,7 @@ function getCatatanData(periode) {
         saldo: totalMasuk - totalKeluar,
         rows: data.map((d, index) => ({
             no: index + 1,
-            tanggal: d.tanggal.toLocaleDateString('id-ID'),
+            tanggal: formatTanggal(d.tanggal),
             jenis: d.jenis,
             keterangan: d.keterangan,
             nominal: d.nominal
