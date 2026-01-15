@@ -418,3 +418,7 @@ input:focus, select:focus {
     word-break: break-word;
     max-width: 320px; /* sesuaikan */
 }
+
+#catatan-tahunan td:last-child {
+    font-weight: bold;
+}

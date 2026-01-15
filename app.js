@@ -279,14 +279,14 @@ function tampilkanCatatan(periode) {
     } = getCatatanData(periode);
 
     // Ringkasan
-    document.getElementById('catatan-periode').innerText = periodeText;
-    document.getElementById('catatan-total-masuk').innerText = formatRupiah(totalMasuk);
-    document.getElementById('catatan-total-keluar').innerText = formatRupiah(totalKeluar);
-    document.getElementById('catatan-saldo').innerText = formatRupiah(saldo);
-    document.getElementById('tfoot-saldo').innerText = formatRupiah(saldo);
+    document.getElementById('catatan-periode-bulan').innerText = periodeText;
+    document.getElementById('bulan-total-masuk').innerText = formatRupiah(totalMasuk);
+    document.getElementById('bulan-total-keluar').innerText = formatRupiah(totalKeluar);
+    document.getElementById('bulan-saldo').innerText = formatRupiah(saldo);
+    document.getElementById('bulan-tfoot-saldo').innerText = formatRupiah(saldo);
 
     // Tabel
-    const tbody = document.getElementById('catatan-tbody');
+    const tbody = document.getElementById('catatan-bulan-tbody');
     tbody.innerHTML = '';
 
     rows.forEach(row => {
@@ -303,27 +303,235 @@ function tampilkanCatatan(periode) {
 }
 
 /* =========================
-   EVENT: TAMPILKAN CATATAN
+   TAMPILKAN CATATAN TAHUNAN
 ========================= */
-document.getElementById('btn-tampil-catatan').addEventListener('click', () => {
-    const periode = document.getElementById('periode-catatan').value;
-    if (!periode) {
-        alert('Pilih periode');
-        return;
+function tampilkanCatatanTahunan(tahun) {
+    const {
+        periodeText,
+        totalMasuk,
+        totalKeluar,
+        saldoAkhir,
+        rows
+    } = getCatatanTahunanData(tahun);
+
+    /* =========================
+       RINGKASAN
+    ========================= */
+    document.getElementById('catatan-periode-tahun').innerText = periodeText;
+    document.getElementById('tahun-total-masuk').innerText = formatRupiah(totalMasuk);
+    document.getElementById('tahun-total-keluar').innerText = formatRupiah(totalKeluar);
+    document.getElementById('tahun-saldo').innerText = formatRupiah(saldoAkhir);
+    document.getElementById('tahun-tfoot-saldo').innerText = formatRupiah(saldoAkhir);
+
+    /* =========================
+       TABEL REKAP BULANAN
+    ========================= */
+    const tbody = document.getElementById('catatan-tahun-tbody');
+    tbody.innerHTML = '';
+
+    rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="text-align:center;">${r.no}</td>
+            <td>${r.bulanText}</td>
+            <td>${formatRupiah(r.pemasukan)}</td>
+            <td>${formatRupiah(r.pengeluaran)}</td>
+            <td>${formatRupiah(r.saldo)}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+/* =========================
+   DATA CATATAN BULANAN
+========================= */
+function getCatatanData(periode) {
+    const [year, month] = periode.split('-').map(Number);
+
+    const data = dataTransaksi
+        .filter(d =>
+            d.tanggal.getFullYear() === year &&
+            d.tanggal.getMonth() + 1 === month
+        )
+        .sort((a, b) => a.tanggal - b.tanggal);
+
+    const totalMasuk = data
+        .filter(d => d.jenis === 'pemasukan')
+        .reduce((sum, d) => sum + d.nominal, 0);
+
+    const totalKeluar = data
+        .filter(d => d.jenis === 'pengeluaran')
+        .reduce((sum, d) => sum + d.nominal, 0);
+
+    return {
+        periodeText: `Periode: ${new Date(year, month - 1)
+            .toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`,
+        totalMasuk,
+        totalKeluar,
+        saldo: totalMasuk - totalKeluar,
+        rows: data.map((d, index) => ({
+            no: index + 1,
+            tanggal: formatTanggal(d.tanggal),
+            jenis: d.jenis,
+            keterangan: d.keterangan,
+            nominal: d.nominal
+        }))
+    };
+}
+
+/* =========================
+   DATA CATATAN TAHUNAN
+========================= */
+function getCatatanTahunanData(tahun) {
+    tahun = Number(tahun);
+
+    // Siapkan map 12 bulan
+    const bulanMap = {};
+    for (let i = 0; i < 12; i++) {
+        bulanMap[i] = {
+            pemasukan: 0,
+            pengeluaran: 0
+        };
     }
-    tampilkanCatatan(periode);
+
+    // Filter transaksi tahun terkait
+    const transaksiTahun = dataTransaksi.filter(d =>
+        d.tanggal &&
+        d.tanggal.getFullYear() === tahun
+    );
+
+    // Akumulasi per bulan
+    transaksiTahun.forEach(d => {
+        const bulan = d.tanggal.getMonth(); // 0 - 11
+
+        if (d.jenis === 'pemasukan') {
+            bulanMap[bulan].pemasukan += d.nominal;
+        }
+
+        if (d.jenis === 'pengeluaran') {
+            bulanMap[bulan].pengeluaran += d.nominal;
+        }
+    });
+
+    // Bentuk rows rekap bulanan
+    const rows = [];
+    let totalMasuk = 0;
+    let totalKeluar = 0;
+
+    Object.keys(bulanMap).forEach((bulan, index) => {
+        const masuk = bulanMap[bulan].pemasukan;
+        const keluar = bulanMap[bulan].pengeluaran;
+        const saldo = masuk - keluar;
+
+        totalMasuk += masuk;
+        totalKeluar += keluar;
+
+        rows.push({
+            no: index + 1,
+            bulanIndex: Number(bulan),
+            bulanText: new Date(tahun, bulan)
+                .toLocaleDateString('id-ID', { month: 'long' }),
+            pemasukan: masuk,
+            pengeluaran: keluar,
+            saldo
+        });
+    });
+
+    return {
+        tahun,
+        periodeText: `Tahun ${tahun}`,
+        totalMasuk,
+        totalKeluar,
+        saldoAkhir: totalMasuk - totalKeluar,
+        rows
+    };
+}
+
+/* =========================
+   TOGGLE MODE CATATAN
+========================= */
+const radioModes = document.querySelectorAll('input[name="catatan-mode"]');
+const inputBulan = document.getElementById('periode-catatan-bulan');
+const inputTahun = document.getElementById('periode-catatan-tahun');
+
+const catatanBulanan = document.getElementById('catatan-bulanan');
+const catatanTahunan = document.getElementById('catatan-tahunan');
+
+function setModeCatatan(mode) {
+    catatanBulanan.style.display = 'none';
+    catatanTahunan.style.display = 'none';
+
+    if (mode === 'bulan') {
+        inputBulan.style.display = 'inline-block';
+        inputTahun.style.display = 'none';
+        catatanBulanan.style.display = 'block';
+    }
+
+    if (mode === 'tahun') {
+        inputBulan.style.display = 'none';
+        inputTahun.style.display = 'inline-block';
+        catatanTahunan.style.display = 'block';
+    }
+}
+
+radioModes.forEach(radio => {
+    radio.addEventListener('change', e => {
+        setModeCatatan(e.target.value);
+    });
 });
 
 /* =========================
-   PDF CATATAN
+   INIT DEFAULT MODE
 ========================= */
-document.getElementById('btn-pdf-catatan').addEventListener('click', () => {
-    const periode = document.getElementById('periode-catatan').value;
-    if (!periode) {
-        alert('Pilih periode terlebih dahulu');
-        return;
+setModeCatatan(
+    document.querySelector('input[name="catatan-mode"]:checked').value
+);
+
+document.getElementById('btn-tampil-catatan').addEventListener('click', () => {
+    const mode = document.querySelector('input[name="catatan-mode"]:checked').value;
+
+    if (mode === 'bulan') {
+        const periode = inputBulan.value;
+        if (!periode) {
+            alert('Pilih bulan dan tahun');
+            return;
+        }
+        tampilkanCatatan(periode); // fungsi lama (bulanan)
     }
 
+    if (mode === 'tahun') {
+        const tahun = inputTahun.value;
+        if (!tahun) {
+            alert('Pilih tahun');
+            return;
+        }
+        tampilkanCatatanTahunan(tahun); // fungsi baru (akan dibuat)
+    }
+});
+
+document.getElementById('btn-pdf-catatan').addEventListener('click', () => {
+    const mode = document.querySelector('input[name="catatan-mode"]:checked').value;
+
+    if (mode === 'bulan') {
+        const periode = inputBulan.value;
+        if (!periode) {
+            alert('Pilih periode bulanan');
+            return;
+        }
+        generatePdfBulanan(periode); // fungsi PDF lama
+    }
+
+    if (mode === 'tahun') {
+        const tahun = inputTahun.value;
+        if (!tahun) {
+            alert('Pilih tahun');
+            return;
+        }
+        generatePdfTahunan(tahun); // fungsi PDF tahunan
+    }
+});
+
+function generatePdfBulanan(periode) {
     const {
         periodeText,
         totalMasuk,
@@ -337,7 +545,7 @@ document.getElementById('btn-pdf-catatan').addEventListener('click', () => {
 
     const PAGE_MARGIN = 15;
     const PAGE_WIDTH = 210;
-    const CONTENT_WIDTH = PAGE_WIDTH - PAGE_MARGIN * 2; // 180mm
+    const CONTENT_WIDTH = PAGE_WIDTH - PAGE_MARGIN * 2;
 
     /* =========================
        HEADER
@@ -352,14 +560,13 @@ document.getElementById('btn-pdf-catatan').addEventListener('click', () => {
     doc.setFont('helvetica', 'normal');
     doc.text(periodeText, 105, 29, { align: 'center' });
 
-    doc.setDrawColor(0);
     doc.line(PAGE_MARGIN, 33, PAGE_WIDTH - PAGE_MARGIN, 33);
 
     /* =========================
-       RINGKASAN
+       RINGKASAN BULANAN
     ========================= */
     doc.setFontSize(10);
-    doc.text('Ringkasan:', PAGE_MARGIN, 42);
+    doc.text('Ringkasan Bulanan:', PAGE_MARGIN, 42);
 
     doc.autoTable({
         startY: 45,
@@ -382,7 +589,7 @@ document.getElementById('btn-pdf-catatan').addEventListener('click', () => {
         body: [
             ['Total Pemasukan', formatRupiah(totalMasuk)],
             ['Total Pengeluaran', formatRupiah(totalKeluar)],
-            ['Saldo', formatRupiah(saldo)]
+            ['Saldo Periode', formatRupiah(saldo)]
         ]
     });
 
@@ -424,10 +631,10 @@ document.getElementById('btn-pdf-catatan').addEventListener('click', () => {
         },
         columnStyles: {
             0: { halign: 'center', cellWidth: CONTENT_WIDTH * 0.07 },
-            1: { halign: 'center', cellWidth: CONTENT_WIDTH * 0.18 },
+            1: { cellWidth: CONTENT_WIDTH * 0.18 },
             2: { halign: 'center', cellWidth: CONTENT_WIDTH * 0.18 },
-            3: { halign: 'left',   cellWidth: CONTENT_WIDTH * 0.37 },
-            4: { halign: 'right',  cellWidth: CONTENT_WIDTH * 0.20 }
+            3: { cellWidth: CONTENT_WIDTH * 0.37 },
+            4: { halign: 'right', cellWidth: CONTENT_WIDTH * 0.20 }
         }
     });
 
@@ -449,59 +656,159 @@ document.getElementById('btn-pdf-catatan').addEventListener('click', () => {
             ['Saldo Periode', formatRupiah(saldo)]
         ],
         columnStyles: {
-            0: { cellWidth: CONTENT_WIDTH * 0.8 },
-            1: { halign: 'right', cellWidth: CONTENT_WIDTH * 0.2 }
+            0: { cellWidth: CONTENT_WIDTH * 0.75 },
+            1: { halign: 'right', cellWidth: CONTENT_WIDTH * 0.25 }
         }
     });
 
     /* =========================
-       SIMPAN
+       SIMPAN FILE
     ========================= */
     const [year, month] = periode.split('-');
+    const namaBulan = new Date(year, month - 1)
+        .toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
 
-    const namaBulan = new Date(year, month - 1).toLocaleDateString('id-ID', {
-        month: 'long'
-    });
-
-    doc.save(`Catatan Keuangan Masjid Husnul Khatimah ${namaBulan} ${year}.pdf`);
-
-});
+    doc.save(`Catatan Keuangan Masjid Husnul Khatimah ${namaBulan}.pdf`);
+}
 
 /* =========================
-   DATA CATATAN BULANAN
+   PDF CATATAN TAHUNAN
 ========================= */
-function getCatatanData(periode) {
-    const [year, month] = periode.split('-').map(Number);
-
-    const data = dataTransaksi
-        .filter(d =>
-            d.tanggal.getFullYear() === year &&
-            d.tanggal.getMonth() + 1 === month
-        )
-        .sort((a, b) => a.tanggal - b.tanggal);
-
-    const totalMasuk = data
-        .filter(d => d.jenis === 'pemasukan')
-        .reduce((sum, d) => sum + d.nominal, 0);
-
-    const totalKeluar = data
-        .filter(d => d.jenis === 'pengeluaran')
-        .reduce((sum, d) => sum + d.nominal, 0);
-
-    return {
-        periodeText: `Periode: ${new Date(year, month - 1)
-            .toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`,
+function generatePdfTahunan(tahun) {
+    const {
+        periodeText,
         totalMasuk,
         totalKeluar,
-        saldo: totalMasuk - totalKeluar,
-        rows: data.map((d, index) => ({
-            no: index + 1,
-            tanggal: formatTanggal(d.tanggal),
-            jenis: d.jenis,
-            keterangan: d.keterangan,
-            nominal: d.nominal
-        }))
-    };
+        saldoAkhir,
+        rows
+    } = getCatatanTahunanData(tahun);
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+
+    const PAGE_MARGIN = 15;
+    const PAGE_WIDTH = 210;
+    const CONTENT_WIDTH = PAGE_WIDTH - PAGE_MARGIN * 2;
+
+    /* =========================
+       HEADER
+    ========================= */
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('Catatan Keuangan', 105, 15, { align: 'center' });
+
+    doc.setFontSize(11);
+    doc.text('Masjid Husnul Khatimah', 105, 22, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.text(periodeText, 105, 29, { align: 'center' });
+
+    doc.setDrawColor(0);
+    doc.line(PAGE_MARGIN, 33, PAGE_WIDTH - PAGE_MARGIN, 33);
+
+    /* =========================
+       RINGKASAN TAHUNAN
+    ========================= */
+    doc.setFontSize(10);
+    doc.text('Ringkasan Tahunan:', PAGE_MARGIN, 42);
+
+    doc.autoTable({
+        startY: 45,
+        theme: 'grid',
+        tableWidth: CONTENT_WIDTH,
+        margin: { left: PAGE_MARGIN },
+        styles: {
+            fontSize: 9,
+            cellPadding: 3,
+            textColor: 0,
+            lineColor: 0
+        },
+        headStyles: {
+            fillColor: [230, 230, 230]
+        },
+        columnStyles: {
+            0: { cellWidth: CONTENT_WIDTH * 0.6 },
+            1: { cellWidth: CONTENT_WIDTH * 0.4 }
+        },
+        body: [
+            ['Total Pemasukan', formatRupiah(totalMasuk)],
+            ['Total Pengeluaran', formatRupiah(totalKeluar)],
+            ['Saldo Akhir Tahun', formatRupiah(saldoAkhir)]
+        ]
+    });
+
+    /* =========================
+       REKAP PER BULAN
+    ========================= */
+    doc.text('Rekap Per Bulan:', PAGE_MARGIN, doc.lastAutoTable.finalY + 10);
+
+    doc.autoTable({
+        startY: doc.lastAutoTable.finalY + 13,
+        theme: 'grid',
+        tableWidth: CONTENT_WIDTH,
+        margin: { left: PAGE_MARGIN },
+        head: [[
+            'No',
+            'Bulan',
+            'Pemasukan',
+            'Pengeluaran',
+            'Saldo Bulanan'
+        ]],
+        body: rows.map(r => ([
+            r.no,
+            r.bulanText,
+            formatRupiah(r.pemasukan),
+            formatRupiah(r.pengeluaran),
+            formatRupiah(r.saldo)
+        ])),
+        styles: {
+            fontSize: 9,
+            cellPadding: 3,
+            textColor: 0,
+            lineColor: 0
+        },
+        headStyles: {
+            fillColor: [200, 200, 200],
+            textColor: 0,
+            fontStyle: 'bold',
+            halign: 'center'
+        },
+        columnStyles: {
+            0: { halign: 'center', cellWidth: CONTENT_WIDTH * 0.08 },
+            1: { cellWidth: CONTENT_WIDTH * 0.22 },
+            2: { halign: 'right', cellWidth: CONTENT_WIDTH * 0.23 },
+            3: { halign: 'right', cellWidth: CONTENT_WIDTH * 0.23 },
+            4: { halign: 'right', cellWidth: CONTENT_WIDTH * 0.24 }
+        }
+    });
+
+    /* =========================
+       FOOTER SALDO
+    ========================= */
+    doc.autoTable({
+        startY: doc.lastAutoTable.finalY + 5,
+        theme: 'grid',
+        tableWidth: CONTENT_WIDTH,
+        margin: { left: PAGE_MARGIN },
+        styles: {
+            fontSize: 9,
+            cellPadding: 3,
+            textColor: 0,
+            lineColor: 0
+        },
+        body: [
+            ['Saldo Akhir Tahun', formatRupiah(saldoAkhir)]
+        ],
+        columnStyles: {
+            0: { cellWidth: CONTENT_WIDTH * 0.75 },
+            1: { halign: 'right', cellWidth: CONTENT_WIDTH * 0.25 }
+        }
+    });
+
+    /* =========================
+       SIMPAN FILE
+    ========================= */
+    doc.save(`Catatan Keuangan Masjid Husnul Khatimah Tahun ${tahun}.pdf`);
 }
 
 // =======================

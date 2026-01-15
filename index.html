@@ -130,43 +130,118 @@
     <h2>Catatan</h2>
 
     <div class="catatan-filter">
-        <input type="month" id="periode-catatan">
+        <label>
+            <input type="radio" name="catatan-mode" value="bulan" checked>
+            Bulanan
+        </label>
+
+        <label>
+            <input type="radio" name="catatan-mode" value="tahun">
+            Tahunan
+        </label>
+
+        <input type="month" id="periode-catatan-bulan">
+        <input type="number" id="periode-catatan-tahun"
+            min="2000" max="2100" placeholder="Tahun"
+            style="display:none;">
+
         <button id="btn-tampil-catatan">Tampilkan</button>
         <button id="btn-pdf-catatan">Unduh PDF</button>
     </div>
 
     <div id="catatan-content">
-        <div class="ringkasan-catatan">
-            <p>Catatan Keuangan</p>
-            <p>Masjid Husnul Khatimah</p>
-            <p id="catatan-periode">Periode: -</p>
+        <!-- CATATAN BULANAN -->
+        <div id="catatan-bulanan">
 
-            <table class="tabel-ringkasan">
-                <tr><td>Total Pemasukan</td><td id="catatan-total-masuk">Rp 0</td></tr>
-                <tr><td>Total Pengeluaran</td><td id="catatan-total-keluar">Rp 0</td></tr>
-                <tr><td>Saldo</td><td id="catatan-saldo">Rp 0</td></tr>
-            </table>
+            <!-- Ringkasan Bulanan -->
+            <div class="ringkasan-catatan">
+                <p>Catatan Keuangan</p>
+                <p>Masjid Husnul Khatimah</p>
+                <p id="catatan-periode-bulan">Periode: -</p>
+
+                <table class="tabel-ringkasan">
+                    <tr>
+                        <td>Total Pemasukan</td>
+                        <td id="bulan-total-masuk">Rp 0</td>
+                    </tr>
+                    <tr>
+                        <td>Total Pengeluaran</td>
+                        <td id="bulan-total-keluar">Rp 0</td>
+                    </tr>
+                    <tr>
+                        <td>Saldo</td>
+                        <td id="bulan-saldo">Rp 0</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Tabel Transaksi Bulanan -->
+            <div class="tabel-transaksi-wrapper">
+                <table class="tabel-transaksi">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Tanggal</th>
+                            <th>Jenis</th>
+                            <th>Keterangan</th>
+                            <th>Nominal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="catatan-bulan-tbody"></tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4">Saldo Periode</td>
+                            <td id="bulan-tfoot-saldo">Rp 0</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
         </div>
+        <!-- CATATAN TAHUNAN -->
+        <div id="catatan-tahunan" style="display:none;">
 
-        <div class="tabel-transaksi-wrapper">
-            <table class="tabel-transaksi">
-                <thead>
+            <div class="ringkasan-catatan">
+                <p>Catatan Keuangan</p>
+                <p>Masjid Husnul Khatimah</p>
+                <p id="catatan-periode-tahun">Tahun: -</p>
+
+                <table class="tabel-ringkasan">
                     <tr>
-                        <th>No</th>
-                        <th>Tanggal</th>
-                        <th>Jenis</th>
-                        <th>Keterangan</th>
-                        <th>Nominal</th>
+                        <td>Total Pemasukan</td>
+                        <td id="tahun-total-masuk">Rp 0</td>
                     </tr>
-                </thead>
-                <tbody id="catatan-tbody"></tbody>
-                <tfoot>
                     <tr>
-                        <td colspan="4">Saldo Periode</td>
-                        <td id="tfoot-saldo">Rp 0</td>
+                        <td>Total Pengeluaran</td>
+                        <td id="tahun-total-keluar">Rp 0</td>
                     </tr>
-                </tfoot>
-            </table>
+                    <tr>
+                        <td>Saldo Akhir Tahun</td>
+                        <td id="tahun-saldo">Rp 0</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="tabel-transaksi-wrapper">
+                <table class="tabel-transaksi">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Bulan</th>
+                            <th>Pemasukan</th>
+                            <th>Pengeluaran</th>
+                            <th>Saldo Bulanan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="catatan-tahun-tbody"></tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4">Saldo Akhir Tahun</td>
+                            <td id="tahun-tfoot-saldo">Rp 0</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
         </div>
     </div>
 </section>
