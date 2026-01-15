@@ -29,13 +29,24 @@ Papa.parse(CSV_URL, {
                 tanggal: parseTanggal(r.Tanggal),
                 jenis: (r.Jenis || '').toLowerCase(),
                 keterangan: r.Keterangan || '-',
-                nominal: Number(r.Nominal) || 0
+                nominal: parseNominal(r.Nominal)
             }));
 
         renderBeranda();
         renderTransaksi();
     }
 });
+
+function parseNominal(value) {
+    if (!value) return 0;
+
+    return Number(
+        value
+            .toString()
+            .replace(/\./g, '')
+            .replace(/,/g, '.')
+    ) || 0;
+}
 
 // =======================
 // Render Beranda
@@ -239,12 +250,10 @@ function renderTransaksi(filterMonth=null){
         .forEach(d=>{
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${formatTanggal(d.tanggal)}</td>
-                <td>${formatJenis(d.jenis)}</td>
+                <td style="text-align:center;">${formatTanggal(d.tanggal)}</td>
+                <td style="text-align:center;">${formatJenis(d.jenis)}</td>
                 <td class="kolom-keterangan">${d.keterangan}</td>
-                <td class="kolom-nominal ${d.jenis}">
-                    Rp ${d.nominal.toLocaleString('id-ID')}
-                </td>
+                <td class="kolom-nominal ${d.jenis}">Rp ${d.nominal.toLocaleString('id-ID')}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -496,7 +505,7 @@ document.getElementById('btn-tampil-catatan').addEventListener('click', () => {
             alert('Pilih bulan dan tahun');
             return;
         }
-        tampilkanCatatan(periode); // fungsi lama (bulanan)
+        tampilkanCatatan(periode);
     }
 
     if (mode === 'tahun') {
@@ -505,7 +514,7 @@ document.getElementById('btn-tampil-catatan').addEventListener('click', () => {
             alert('Pilih tahun');
             return;
         }
-        tampilkanCatatanTahunan(tahun); // fungsi baru (akan dibuat)
+        tampilkanCatatanTahunan(tahun);
     }
 });
 
@@ -518,7 +527,7 @@ document.getElementById('btn-pdf-catatan').addEventListener('click', () => {
             alert('Pilih periode bulanan');
             return;
         }
-        generatePdfBulanan(periode); // fungsi PDF lama
+        generatePdfBulanan(periode);
     }
 
     if (mode === 'tahun') {
@@ -527,7 +536,7 @@ document.getElementById('btn-pdf-catatan').addEventListener('click', () => {
             alert('Pilih tahun');
             return;
         }
-        generatePdfTahunan(tahun); // fungsi PDF tahunan
+        generatePdfTahunan(tahun);
     }
 });
 

@@ -187,9 +187,20 @@ header nav button.active {
     margin-top: 12px;
 }
 
-table {
+.tabel-transaksi-wrapper {
     width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+table {
     border-collapse: collapse;
+}
+
+.table-wrapper table,
+.tabel-transaksi,
+.tabel-ringkasan {
+    width: 100%;
     font-size: 0.95rem;
 }
 
@@ -412,13 +423,13 @@ input:focus, select:focus {
     text-align: right;
 }
 
-/* Keterangan: BOLEH WRAP */
-#tabel-transaksi td.kolom-keterangan {
-    white-space: normal;
-    word-break: break-word;
-    max-width: 320px; /* sesuaikan */
-}
-
+/* Tabel Ringkasan Tahunan */
 #catatan-tahunan td:last-child {
     font-weight: bold;
+}
+
+#catatan .tabel-transaksi th,
+#catatan .tabel-transaksi td,
+#catatan .tabel-ringkasan td {
+    border: 1px solid #000;
 }
