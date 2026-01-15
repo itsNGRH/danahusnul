@@ -47,7 +47,7 @@ function renderBeranda(filterType = null, start = null, end = null) {
     dataTransaksi.forEach(d => {
         const year = d.tanggal.getFullYear();
         const month = d.tanggal.getMonth() + 1;
-        const keyMonth = `${year}-${month}`;
+        const keyMonth = `${year}-${String(month).padStart(2, '0')}`;
         const keyYear = `${year}`;
 
         // Filter
@@ -87,18 +87,31 @@ function renderBeranda(filterType = null, start = null, end = null) {
 
     // Chart data
     let labels = [], dataMasuk = [], dataKeluar = [];
-    if (filterType === 'bulan') {
-        Object.keys(monthlyMap).sort().forEach(k => {
-            const [y,m] = k.split('-');
+    if (filterType === 'bulan' && start && end) {
+        let current = new Date(start + '-01');
+        const [yEnd, mEnd] = end.split('-');
+        const endDate = new Date(Number(yEnd), Number(mEnd), 1);
+
+        while (current <= endDate) {
+            const key = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}`;
+
             labels.push(
-                new Date(y, m - 1).toLocaleDateString('id-ID', {
+                current.toLocaleDateString('id-ID', {
                     month: 'short',
                     year: 'numeric'
                 })
             );
-            dataMasuk.push(monthlyMap[k].masuk);
-            dataKeluar.push(monthlyMap[k].keluar);
-        });
+
+            if (monthlyMap[key]) {
+                dataMasuk.push(monthlyMap[key].masuk);
+                dataKeluar.push(monthlyMap[key].keluar);
+            } else {
+                dataMasuk.push(0);
+                dataKeluar.push(0);
+            }
+
+            current.setMonth(current.getMonth() + 1);
+        }
     } else if (filterType === 'tahun') {
         Object.keys(yearlyMap).sort().forEach(k => {
             labels.push(k);
@@ -113,7 +126,7 @@ function renderBeranda(filterType = null, start = null, end = null) {
             let current = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
             const end = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
             while(current <= end) {
-                const key = `${current.getFullYear()}-${current.getMonth()+1}`;
+                const key = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}`;
                 labels.push(`${current.getMonth()+1}/${current.getFullYear()}`);
                 if(monthlyMap[key]){
                     dataMasuk.push(monthlyMap[key].masuk);
@@ -489,31 +502,6 @@ function getCatatanData(periode) {
             nominal: d.nominal
         }))
     };
-}
-
-/* =========================
-   LAPORAN TAHUNAN (UTIL)
-========================= */
-function getLaporanTahunan(year) {
-    const laporan = {};
-
-    dataTransaksi
-        .filter(d => d.tanggal.getFullYear() === year)
-        .forEach(d => {
-            const bulan = d.tanggal.getMonth() + 1;
-            laporan[bulan] ??= { masuk: 0, keluar: 0 };
-
-            if (d.jenis === 'pemasukan') laporan[bulan].masuk += d.nominal;
-            if (d.jenis === 'pengeluaran') laporan[bulan].keluar += d.nominal;
-        });
-
-    return Object.keys(laporan).map(bulan => ({
-        bulan: new Date(year, bulan - 1)
-            .toLocaleDateString('id-ID', { month: 'long' }),
-        masuk: laporan[bulan].masuk,
-        keluar: laporan[bulan].keluar,
-        saldo: laporan[bulan].masuk - laporan[bulan].keluar
-    }));
 }
 
 // =======================
