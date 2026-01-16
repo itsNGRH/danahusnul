@@ -63,7 +63,7 @@
     <!-- Filter Grafik -->
     <div class="grafik-filter">
         <div class="filter-tipe-row">
-            <label for="filter-tipe">Filter Periode:</label>
+            <label for="filter-tipe">Pilih Periode</label>
             <select id="filter-tipe">
                 <option value="bulan" selected>Bulan</option>
                 <option value="tahun">Tahun</option>
@@ -91,8 +91,10 @@
         </div>
     </div>
 
-    <div class="grafik">
-        <canvas id="grafik-keuangan"></canvas>
+    <div class="grafik-scroll">
+        <div class="grafik" id="grafik-container">
+            <canvas id="grafik-keuangan"></canvas>
+        </div>
     </div>
 </section>
 
@@ -102,11 +104,13 @@
 <section id="transaksi" class="section" style="display:none;">
     <h2>Transaksi</h2>
 
-    <div class="transaksi-filter">
-        <label>Pilih Bulan:</label>
-        <input type="month" id="filter-transaksi">
-        <button id="btn-filter-transaksi">Terapkan</button>
-        <button id="btn-reset-transaksi">Reset</button>
+    <div class="grafik-filter transaksi-filter">
+        <div class="filter-range-row">
+            <label>Pilih Periode</label>
+            <input type="month" id="filter-transaksi">
+            <button id="btn-filter-transaksi">Terapkan</button>
+            <button id="btn-reset-transaksi">Reset</button>
+        </div>
     </div>
 
     <div class="table-wrapper">
@@ -130,24 +134,38 @@
 <section id="catatan" class="section" style="display:none;">
     <h2>Catatan</h2>
 
-    <div class="catatan-filter">
-        <label>
-            <input type="radio" name="catatan-mode" value="bulan" checked>
-            Bulanan
-        </label>
+    <div class="grafik-filter catatan-filter">
+        <label>Pilih Periode</label>
 
-        <label>
-            <input type="radio" name="catatan-mode" value="tahun">
-            Tahunan
-        </label>
+        <!-- Mode -->
+        <div class="filter-tipe-row">
+            <label>
+                <input type="radio" name="catatan-mode" value="bulan" checked>
+                Bulanan
+            </label>
 
-        <input type="month" id="periode-catatan-bulan">
-        <input type="number" id="periode-catatan-tahun"
-            min="2000" max="2100" placeholder="Tahun"
-            style="display:none;">
+            <label>
+                <input type="radio" name="catatan-mode" value="tahun">
+                Tahunan
+            </label>
+        </div>
 
-        <button id="btn-tampil-catatan">Tampilkan</button>
-        <button id="btn-pdf-catatan">Unduh PDF</button>
+        <!-- Periode -->
+        <div class="filter-range-row">
+            <input type="month" id="periode-catatan-bulan">
+
+            <input type="number" id="periode-catatan-tahun"
+                min="2000" max="2100"
+                placeholder="20xx"
+                style="display:none;">
+        </div>
+
+        <!-- Aksi -->
+        <div class="filter-range-row">
+            <button id="btn-tampil-catatan">Tampilkan</button>
+            <button id="btn-pdf-catatan">Unduh PDF</button>
+        </div>
+
     </div>
 
     <div id="catatan-content">
@@ -170,7 +188,7 @@
                         <td id="bulan-total-keluar">Rp 0</td>
                     </tr>
                     <tr>
-                        <td>Saldo</td>
+                        <td>Saldo Periode</td>
                         <td id="bulan-saldo">Rp 0</td>
                     </tr>
                 </table>
@@ -205,7 +223,7 @@
             <div class="ringkasan-catatan">
                 <p>Catatan Keuangan</p>
                 <p>Masjid Husnul Khatimah</p>
-                <p id="catatan-periode-tahun">Tahun: -</p>
+                <p id="catatan-periode-tahun">Periode: -</p>
 
                 <table class="tabel-ringkasan">
                     <tr>
@@ -217,7 +235,7 @@
                         <td id="tahun-total-keluar">Rp 0</td>
                     </tr>
                     <tr>
-                        <td>Saldo Akhir Tahun</td>
+                        <td>Saldo Periode</td>
                         <td id="tahun-saldo">Rp 0</td>
                     </tr>
                 </table>
@@ -236,7 +254,7 @@
                     <tbody id="catatan-tahun-tbody"></tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="4">Saldo Akhir Tahun</td>
+                            <td colspan="4">Saldo Periode</td>
                             <td id="tahun-tfoot-saldo">Rp 0</td>
                         </tr>
                     </tfoot>

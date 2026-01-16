@@ -167,13 +167,57 @@ function renderBeranda(filterType = null, start = null, end = null) {
                     {label:'Pengeluaran', data:dataKeluar, backgroundColor:'#dc2626'}
                 ]
             },
-            options:{
-                responsive:true,
-                plugins:{legend:{position:'top'}},
-                scales:{ y:{ticks:{callback: v=>'Rp '+v.toLocaleString('id-ID')}}}
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: v => 'Rp ' + v.toLocaleString('id-ID')
+                        }
+                    }
+                }
             }
         });
     }
+    setGrafikAutoWidth(labels.length);
+}
+
+window.addEventListener('resize', () => {
+    if (chartBeranda) {
+        setGrafikAutoWidth(chartBeranda.data.labels.length);
+        chartBeranda.resize();
+    }
+});
+
+function setGrafikAutoWidth(jumlahLabel) {
+    const container = document.getElementById('grafik-container');
+    if (!container) return;
+
+    const isMobile = window.innerWidth <= 768;
+
+    // Reset default (desktop)
+    if (!isMobile) {
+        container.style.minWidth = '100%';
+        return;
+    }
+
+    /* =========================
+       Konfigurasi Lebar
+    ========================= */
+    const WIDTH_PER_LABEL = 90;   // px per bulan (ideal)
+    const MIN_WIDTH = 600;        // batas minimum
+    const MAX_WIDTH = 1600;       // batas maksimum (aman)
+
+    let calculatedWidth = jumlahLabel * WIDTH_PER_LABEL;
+
+    calculatedWidth = Math.max(MIN_WIDTH, calculatedWidth);
+    calculatedWidth = Math.min(MAX_WIDTH, calculatedWidth);
+
+    container.style.minWidth = calculatedWidth + 'px';
 }
 
 // =======================
@@ -742,7 +786,7 @@ function generatePdfTahunan(tahun) {
         body: [
             ['Total Pemasukan', formatRupiah(totalMasuk)],
             ['Total Pengeluaran', formatRupiah(totalKeluar)],
-            ['Saldo Akhir Tahun', formatRupiah(saldoAkhir)]
+            ['Saldo Periode', formatRupiah(saldoAkhir)]
         ]
     });
 
@@ -806,7 +850,7 @@ function generatePdfTahunan(tahun) {
             lineColor: 0
         },
         body: [
-            ['Saldo Akhir Tahun', formatRupiah(saldoAkhir)]
+            ['Saldo Periode', formatRupiah(saldoAkhir)]
         ],
         columnStyles: {
             0: { cellWidth: CONTENT_WIDTH * 0.75 },

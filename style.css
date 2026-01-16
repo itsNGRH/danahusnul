@@ -97,10 +97,78 @@ header nav button.active {
 }
 
 /* ==========================
-   Chart & Grafik
+   Grafik Responsive (Min Size)
 ========================== */
+
 .grafik {
     margin-top: 24px;
+    position: relative;
+    width: 100%;
+    min-height: 360px; /* desktop & tablet */
+}
+
+/* Canvas ikut penuh container */
+.grafik canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .grafik {
+        min-height: 320px;
+    }
+}
+
+/* Mobile kecil */
+@media (max-width: 480px) {
+    .grafik {
+        min-height: 280px;
+    }
+}
+
+/* ==========================
+   Grafik Scroll Horizontal (Mobile)
+========================== */
+
+/* Wrapper scroll */
+.grafik-scroll {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* Default (desktop) */
+.grafik {
+    position: relative;
+    width: 100%;
+    min-height: 360px;
+}
+
+.grafik canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Tablet & Mobile */
+@media (max-width: 768px) {
+    .grafik-scroll {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .grafik {
+        min-width: 720px;
+        min-height: 320px;
+        max-height: 90vh;
+    }
+}
+
+/* Mobile kecil */
+@media (max-width: 480px) {
+    .grafik {
+        min-width: 900px;
+        min-height: 280px;
+    }
 }
 
 /* ==========================
@@ -197,8 +265,7 @@ table {
     border-collapse: collapse;
 }
 
-.table-wrapper table,
-.tabel-transaksi,
+.table-wrapper > table:not(.tabel-transaksi),
 .tabel-ringkasan {
     width: 100%;
     font-size: 0.95rem;
@@ -224,13 +291,6 @@ td.pengeluaran { color: var(--red); font-weight: 500; }
 /* ==========================
    Filters & Controls
 ========================== */
-.catatan-filter {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-    margin-bottom: 16px;
-}
 
 input, select {
     padding: 6px 10px;
@@ -356,7 +416,7 @@ input:focus, select:focus {
     display: flex;
     gap: 16px;
     justify-content: center;
-    flex-wrap: wrap; /* agar mobile auto-wrap */
+    flex-wrap: wrap;
 }
 
 /* Totals items - default 50% desktop */
@@ -381,7 +441,12 @@ input:focus, select:focus {
    TABEL CATATAN (MONOCHROME)
 ========================== */
 
-.tabel-transaksi,
+.tabel-transaksi {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+}
+
 .tabel-ringkasan {
     width: 100%;
     border-collapse: collapse;
@@ -395,7 +460,7 @@ input:focus, select:focus {
     border: 1px solid #000;
     padding: 8px 10px;
     font-size: 14px;
-    white-space: nowrap;
+    white-space: nowrap !important;
 }
 
 /* Header tabel */
@@ -432,4 +497,117 @@ input:focus, select:focus {
 #catatan .tabel-transaksi td,
 #catatan .tabel-ringkasan td {
     border: 1px solid #000;
+}
+
+#transaksi table {
+    width: max-content;
+    min-width: 100%;
+}
+
+#transaksi th,
+#transaksi td {
+    white-space: nowrap !important;
+}
+
+/* ==========================
+   CATATAN FILTER (EXTENSION)
+========================== */
+
+.catatan-filter {
+    flex-direction: row;
+    align-items: center;
+}
+
+.catatan-filter .filter-range-row {
+    gap: 10px;
+}
+
+/* Mode Bulan / Tahun */
+.catatan-filter .filter-tipe-row {
+    background-color: var(--card);
+    padding: 2px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    gap: 16px;
+}
+
+/* Radio label */
+.catatan-filter .filter-tipe-row label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* Input periode */
+.catatan-filter .filter-range-row input {
+    min-width: 160px;
+}
+
+/* Baris tombol */
+.catatan-filter .filter-range-row:last-child {
+    justify-content: flex-end;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .catatan-filter {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+    
+    .catatan-filter .filter-range-row:last-child {
+        justify-content: stretch;
+    }
+
+    .catatan-filter button,
+    .catatan-filter input {
+        width: 100%;
+    }
+
+    .catatan-filter .filter-tipe-row {
+        flex-direction: row;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    input,
+    select,
+    button {
+        font-size: 16px;
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 768px) {
+    .grafik-filter input,
+    .grafik-filter select,
+    .catatan-filter input,
+    .catatan-filter select {
+        min-height: 44px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    input[type="month"],
+    input[type="number"] {
+        min-width: 100%;
+        height: 44px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .filter-tipe-row label {
+        min-height: 44px;
+        align-items: center;
+    }
+
+    .filter-tipe-row input[type="radio"] {
+        transform: scale(1.2);
+    }
 }
